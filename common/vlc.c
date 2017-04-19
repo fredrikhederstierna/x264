@@ -798,8 +798,8 @@ static const vlc_t run_before[7][16] =
     },
 };
 
-vlc_large_t x264_level_token[7][LEVEL_TABLE_SIZE];
-uint32_t x264_run_before[1<<16];
+vlc_large_t x264_level_token[7][LEVEL_TABLE_SIZE] X264_LARGE_BSS_LINK_SECTION;
+uint32_t x264_run_before[1<<16] X264_LARGE_BSS_LINK_SECTION;
 
 void x264_cavlc_init( x264_t *h )
 {

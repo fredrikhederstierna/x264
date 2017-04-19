@@ -1626,18 +1626,18 @@ generic_option:
     else FAIL_IF_ERROR( !info.vfr && input_opt.timebase, "--timebase is incompatible with cfr input\n" );
 
     /* init threaded input while the information about the input video is unaltered by filtering */
-#if HAVE_THREAD
     if( info.thread_safe && (b_thread_input || param->i_threads > 1
         || (param->i_threads == X264_THREADS_AUTO && x264_cpu_num_processors() > 1)) )
     {
+#if HAVE_THREAD
         if( thread_input.open_file( NULL, &opt->hin, &info, NULL ) )
         {
             fprintf( stderr, "x264 [error]: threaded input failed\n" );
             return -1;
         }
         cli_input = thread_input;
-    }
 #endif
+    }
 
     /* override detected values by those specified by the user */
     if( param->vui.i_sar_width > 0 && param->vui.i_sar_height > 0 )

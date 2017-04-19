@@ -39,7 +39,9 @@ const int x264_bit_depth = BIT_DEPTH;
 
 const int x264_chroma_format = X264_CHROMA_FORMAT;
 
+#if HAVE_FILEIO
 static void x264_log_default( void *, int, const char *, va_list );
+#endif
 
 /****************************************************************************
  * x264_param_default:
@@ -112,10 +114,12 @@ void x264_param_default( x264_param_t *param )
     param->rc.f_aq_strength = 1.0;
     param->rc.i_lookahead = 40;
 
+#if HAVE_FILEIO
     param->rc.b_stat_write = 0;
     param->rc.psz_stat_out = "x264_2pass.log";
     param->rc.b_stat_read = 0;
     param->rc.psz_stat_in = "x264_2pass.log";
+#endif
     param->rc.f_qcompress = 0.6;
     param->rc.f_qblur = 0.5;
     param->rc.f_complexity_blur = 20;
@@ -123,7 +127,9 @@ void x264_param_default( x264_param_t *param )
     param->rc.b_mb_tree = 1;
 
     /* Log */
+#if HAVE_FILEIO
     param->pf_log = x264_log_default;
+#endif
     param->p_log_private = NULL;
     param->i_log_level = X264_LOG_INFO;
 
@@ -591,7 +597,7 @@ int x264_param_parse( x264_param_t *p, const char *name, const char *value )
     if( strchr( name, '_' ) ) // s/_/-/g
     {
         char *c;
-        name_buf = strdup(name);
+        name_buf = x264_strdup(name);
         if( !name_buf )
             return X264_PARAM_BAD_NAME;
         while( (c = strchr( name_buf, '_' )) )
@@ -617,7 +623,7 @@ int x264_param_parse( x264_param_t *p, const char *name, const char *value )
                  !strcasecmp(value, "auto") || atobool(value) ? x264_cpu_detect() : 0;
         if( b_error )
         {
-            char *buf = strdup( value );
+            char *buf = x264_strdup( value );
             if( buf )
             {
                 char *tok, UNUSED *saveptr=NULL, *init;
@@ -632,7 +638,7 @@ int x264_param_parse( x264_param_t *p, const char *name, const char *value )
                     if( !x264_cpu_names[i].flags )
                         b_error = 1;
                 }
-                free( buf );
+                x264_free( buf );
                 if( (p->cpu&X264_CPU_SSSE3) && !(p->cpu&X264_CPU_SSE2_IS_SLOW) )
                     p->cpu |= X264_CPU_SSE2_IS_FAST;
             }
@@ -818,10 +824,10 @@ int x264_param_parse( x264_param_t *p, const char *name, const char *value )
         else if( strstr( value, "jvt" ) )
             p->i_cqm_preset = X264_CQM_JVT;
         else
-            p->psz_cqm_file = strdup(value);
+            p->psz_cqm_file = x264_strdup(value);
     }
     OPT("cqmfile")
-        p->psz_cqm_file = strdup(value);
+        p->psz_cqm_file = x264_strdup(value);
     OPT("cqm4")
     {
         p->i_cqm_preset = X264_CQM_CUSTOM;
@@ -885,7 +891,7 @@ int x264_param_parse( x264_param_t *p, const char *name, const char *value )
     OPT("log")
         p->i_log_level = atoi(value);
     OPT("dump-yuv")
-        p->psz_dump_yuv = strdup(value);
+        p->psz_dump_yuv = x264_strdup(value);
     OPT2("analyse", "partitions")
     {
         p->analyse.inter = 0;
@@ -999,11 +1005,13 @@ int x264_param_parse( x264_param_t *p, const char *name, const char *value )
         p->rc.b_stat_write = pass & 1;
         p->rc.b_stat_read = pass & 2;
     }
+#if HAVE_FILEIO
     OPT("stats")
     {
-        p->rc.psz_stat_in = strdup(value);
-        p->rc.psz_stat_out = strdup(value);
+        p->rc.psz_stat_in = x264_strdup(value);
+        p->rc.psz_stat_out = x264_strdup(value);
     }
+#endif
     OPT("qcomp")
         p->rc.f_qcompress = atof(value);
     OPT("mbtree")
@@ -1013,7 +1021,7 @@ int x264_param_parse( x264_param_t *p, const char *name, const char *value )
     OPT2("cplxblur", "cplx-blur")
         p->rc.f_complexity_blur = atof(value);
     OPT("zones")
-        p->rc.psz_zones = strdup(value);
+        p->rc.psz_zones = x264_strdup(value);
     OPT("crop-rect")
         b_error |= sscanf( value, "%u,%u,%u,%u", &p->crop_rect.i_left, &p->crop_rect.i_top,
                                                  &p->crop_rect.i_right, &p->crop_rect.i_bottom ) != 4;
@@ -1045,12 +1053,14 @@ int x264_param_parse( x264_param_t *p, const char *name, const char *value )
         p->i_frame_packing = atoi(value);
     OPT("stitchable")
         p->b_stitchable = atobool(value);
+#if HAVE_OPENCL
     OPT("opencl")
         p->b_opencl = atobool( value );
     OPT("opencl-clbin")
-        p->psz_clbin_file = strdup( value );
+        p->psz_clbin_file = x264_strdup( value );
     OPT("opencl-device")
         p->i_opencl_device = atoi( value );
+#endif
     else
     {
         b_error = 1;
@@ -1063,12 +1073,13 @@ int x264_param_parse( x264_param_t *p, const char *name, const char *value )
 #undef atof
 
     if( name_buf )
-        free( name_buf );
+        x264_free( name_buf );
 
     b_error |= value_was_null && !name_was_bool;
     return b_error ? errortype : 0;
 }
 
+#if HAVE_FILEIO
 /****************************************************************************
  * x264_log:
  ****************************************************************************/
@@ -1110,6 +1121,7 @@ static void x264_log_default( void *p_unused, int i_level, const char *psz_fmt, 
     fprintf( stderr, "x264 [%s]: ", psz_prefix );
     x264_vfprintf( stderr, psz_fmt, arg );
 }
+#endif
 
 /****************************************************************************
  * x264_picture_init:
@@ -1266,6 +1278,7 @@ void name( type *n, type *d )\
 REDUCE_FRACTION( x264_reduce_fraction  , uint32_t )
 REDUCE_FRACTION( x264_reduce_fraction64, uint64_t )
 
+#if HAVE_FILEIO
 /****************************************************************************
  * x264_slurp_file:
  ****************************************************************************/
@@ -1307,6 +1320,7 @@ error:
     fclose( fh );
     return NULL;
 }
+#endif
 
 /****************************************************************************
  * x264_param2string:

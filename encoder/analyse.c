@@ -272,9 +272,9 @@ static const uint8_t i_sub_mb_p_cost_table[4] =
 
 static void x264_analyse_update_cache( x264_t *h, x264_mb_analysis_t *a );
 
-static uint16_t x264_cost_ref[QP_MAX+1][3][33];
+static uint16_t x264_cost_ref[QP_MAX+1][3][33] X264_LARGE_BSS_LINK_SECTION;
 static UNUSED x264_pthread_mutex_t cost_ref_mutex = X264_PTHREAD_MUTEX_INITIALIZER;
-static uint16_t x264_cost_i4x4_mode[(QP_MAX+2)*32];
+static uint16_t x264_cost_i4x4_mode[(QP_MAX+2)*32] X264_LARGE_BSS_LINK_SECTION;
 
 static int init_costs( x264_t *h, float *logs, int qp )
 {

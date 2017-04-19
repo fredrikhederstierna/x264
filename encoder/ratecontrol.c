@@ -117,6 +117,7 @@ struct x264_ratecontrol_t
     double ip_offset;
     double pb_offset;
 
+#if HAVE_FILEIO
     /* 2pass stuff */
     FILE *p_stat_file_out;
     char *psz_stat_file_tmpname;
@@ -124,6 +125,7 @@ struct x264_ratecontrol_t
     char *psz_mbtree_stat_file_tmpname;
     char *psz_mbtree_stat_file_name;
     FILE *p_mbtree_stat_file_in;
+#endif
 
     int num_entries;            /* number of ratecontrol_entry_ts */
     ratecontrol_entry_t *entry; /* FIXME: copy needed data and free this once init is done */
@@ -505,6 +507,7 @@ static ALWAYS_INLINE float tapfilter( float *src, int pos, int max, int stride, 
     return sum;
 }
 
+#if HAVE_FILEIO
 static void x264_macroblock_tree_rescale( x264_t *h, x264_ratecontrol_t *rc, float *dst )
 {
     float *input, *output;
@@ -580,6 +583,7 @@ fail:
     x264_log( h, X264_LOG_ERROR, "Incomplete MB-tree stats file.\n" );
     return -1;
 }
+#endif
 
 int x264_reference_build_list_optimal( x264_t *h )
 {
@@ -618,6 +622,7 @@ int x264_reference_build_list_optimal( x264_t *h )
     return 0;
 }
 
+#if HAVE_FILEIO
 static char *x264_strcat_filename( char *input, char *suffix )
 {
     char *output = x264_malloc( strlen( input ) + strlen( suffix ) + 1 );
@@ -627,6 +632,7 @@ static char *x264_strcat_filename( char *input, char *suffix )
     strcat( output, suffix );
     return output;
 }
+#endif
 
 void x264_ratecontrol_init_reconfigurable( x264_t *h, int b_init )
 {
@@ -863,6 +869,7 @@ int x264_ratecontrol_new( x264_t *h )
         return -1;
     }
 
+#if HAVE_FILEIO
     /* Load stat file and init 2pass algo */
     if( h->param.rc.b_stat_read )
     {
@@ -1184,6 +1191,7 @@ parse_error:
             }
         }
     }
+#endif
 
     if( h->param.rc.b_mb_tree && (h->param.rc.b_stat_read || h->param.rc.b_stat_write) )
     {
@@ -1352,6 +1360,7 @@ void x264_ratecontrol_summary( x264_t *h )
 void x264_ratecontrol_delete( x264_t *h )
 {
     x264_ratecontrol_t *rc = h->rc;
+#if HAVE_FILEIO
     int b_regular_file;
 
     if( rc->p_stat_file_out )
@@ -1381,6 +1390,7 @@ void x264_ratecontrol_delete( x264_t *h )
     }
     if( rc->p_mbtree_stat_file_in )
         fclose( rc->p_mbtree_stat_file_in );
+#endif
     x264_free( rc->pred );
     x264_free( rc->pred_b_from_p );
     x264_free( rc->entry );
@@ -1829,6 +1839,7 @@ int x264_ratecontrol_end( x264_t *h, int bits, int *filler )
     h->fdec->f_qp_avg_aq = (float)rc->qpa_aq / h->mb.i_mb_count;
     h->fdec->f_crf_avg = h->param.rc.f_rf_constant + h->fdec->f_qp_avg_rc - rc->qp_novbv;
 
+#if HAVE_FILEIO
     if( h->param.rc.b_stat_write )
     {
         char c_type = h->sh.i_type==SLICE_TYPE_I ? (h->fenc->i_poc==0 ? 'I' : 'i')
@@ -1897,6 +1908,7 @@ int x264_ratecontrol_end( x264_t *h, int bits, int *filler )
                 goto fail;
         }
     }
+#endif
 
     if( rc->b_abr )
     {

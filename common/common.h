@@ -254,15 +254,29 @@ static const uint8_t x264_scan8[16*3 + 3] =
 void *x264_malloc( int );
 void  x264_free( void * );
 
+#if HAVE_FILEIO
 /* x264_slurp_file: malloc space for the whole file and read it */
 char *x264_slurp_file( const char *filename );
+#endif
 
 /* x264_param2string: return a (malloced) string containing most of
  * the encoding options */
 char *x264_param2string( x264_param_t *p, int b_res );
 
+/* copy s to new string variable located in heap memory */
+static ALWAYS_INLINE char *x264_strdup( const char *s )
+{
+    char *s2 = x264_malloc(strlen(s) + 1);
+    strcpy(s2,s);
+    return s2;
+}
+
 /* log */
+#if HAVE_FILEIO
 void x264_log( x264_t *h, int i_level, const char *psz_fmt, ... );
+#else
+#define x264_log(h,i_level,psz_fmt,...)
+#endif
 
 void x264_reduce_fraction( uint32_t *n, uint32_t *d );
 void x264_reduce_fraction64( uint64_t *n, uint64_t *d );

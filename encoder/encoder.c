@@ -79,6 +79,7 @@ static int x264_threadpool_wait_all( x264_t *h )
     return 0;
 }
 
+#if HAVE_FILEIO
 static void x264_frame_dump( x264_t *h )
 {
     FILE *f = x264_fopen( h->param.psz_dump_yuv, "r+b" );
@@ -113,6 +114,7 @@ static void x264_frame_dump( x264_t *h )
     }
     fclose( f );
 }
+#endif
 
 /* Fill "default" values */
 static void x264_slice_header_init( x264_t *h, x264_slice_header_t *sh,
@@ -1433,14 +1435,16 @@ x264_t *x264_encoder_open( x264_param_t *param )
     if( x264_validate_parameters( h, 1 ) < 0 )
         goto fail;
 
+#if HAVE_FILEIO
     if( h->param.psz_cqm_file )
         if( x264_cqm_parse_file( h, h->param.psz_cqm_file ) < 0 )
             goto fail;
 
     if( h->param.rc.psz_stat_out )
-        h->param.rc.psz_stat_out = strdup( h->param.rc.psz_stat_out );
+        h->param.rc.psz_stat_out = x264_strdup( h->param.rc.psz_stat_out );
     if( h->param.rc.psz_stat_in )
-        h->param.rc.psz_stat_in = strdup( h->param.rc.psz_stat_in );
+        h->param.rc.psz_stat_in = x264_strdup( h->param.rc.psz_stat_in );
+#endif
 
     x264_reduce_fraction( &h->param.i_fps_num, &h->param.i_fps_den );
     x264_reduce_fraction( &h->param.i_timebase_num, &h->param.i_timebase_den );
@@ -1691,6 +1695,7 @@ x264_t *x264_encoder_open( x264_param_t *param )
         x264_log( h, X264_LOG_DEBUG, "CPB size: %i bits\n", h->sps->vui.hrd.i_cpb_size_unscaled );
     }
 
+#if HAVE_FILEIO
     if( h->param.psz_dump_yuv )
     {
         /* create or truncate the reconstructed video file */
@@ -1708,6 +1713,7 @@ x264_t *x264_encoder_open( x264_param_t *param )
         }
         fclose( f );
     }
+#endif
 
     const char *profile = h->sps->i_profile_idc == PROFILE_BASELINE ? "Constrained Baseline" :
                           h->sps->i_profile_idc == PROFILE_MAIN ? "Main" :
@@ -3280,8 +3286,10 @@ int     x264_encoder_encode( x264_t *h,
 
         if( h->param.rc.b_mb_tree && h->param.rc.b_stat_read )
         {
+#if HAVE_FILEIO
             if( x264_macroblock_tree_read( h, fenc, pic_in->prop.quant_offsets ) )
                 return -1;
+#endif
         }
         else
             x264_stack_align( x264_adaptive_quant_frame, h, fenc, pic_in->prop.quant_offsets );
@@ -4005,8 +4013,10 @@ static int x264_encoder_frame_end( x264_t *h, x264_t *thread_current,
             h->fref[0][i] = 0;
         }
 
+#if HAVE_FILEIO
     if( h->param.psz_dump_yuv )
         x264_frame_dump( h );
+#endif
     x264_emms();
 
     return frame_size;
@@ -4330,11 +4340,13 @@ void    x264_encoder_close  ( x264_t *h )
     /* rc */
     x264_ratecontrol_delete( h );
 
+#if HAVE_FILEIO
     /* param */
     if( h->param.rc.psz_stat_out )
-        free( h->param.rc.psz_stat_out );
+        x264_free( h->param.rc.psz_stat_out );
     if( h->param.rc.psz_stat_in )
-        free( h->param.rc.psz_stat_in );
+        x264_free( h->param.rc.psz_stat_in );
+#endif
 
     x264_cqm_delete( h );
     x264_free( h->nal_buffer );

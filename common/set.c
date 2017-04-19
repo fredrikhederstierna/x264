@@ -344,6 +344,7 @@ static int x264_cqm_parse_jmlist( x264_t *h, const char *buf, const char *name,
     return 0;
 }
 
+#if HAVE_FILEIO
 int x264_cqm_parse_file( x264_t *h, const char *filename )
 {
     char *p;
@@ -376,4 +377,4 @@ int x264_cqm_parse_file( x264_t *h, const char *filename )
     x264_free( buf );
     return b_error;
 }
-
+#endif

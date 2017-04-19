@@ -1325,7 +1325,7 @@ const uint16_t x264_cabac_entropy[128] =
     FIX8(0.9285), FIX8(1.0752), FIX8(1.0000), FIX8(1.0000)
 };
 
-uint8_t x264_cabac_contexts[4][QP_MAX_SPEC+1][1024];
+uint8_t x264_cabac_contexts[4][QP_MAX_SPEC+1][1024] X264_LARGE_BSS_LINK_SECTION;
 
 void x264_cabac_init( x264_t *h )
 {

@@ -103,6 +103,12 @@ int x264_is_pipe( const char *path );
 #define x264_is_pipe(x) 0
 #endif
 
+/* if x264 should not use default stdlib heap */
+#if !HAVE_HEAP
+#define malloc __x264_malloc
+#define free __x264_free
+#endif
+
 #ifdef _MSC_VER
 #define DECLARE_ALIGNED( var, n ) __declspec(align(n)) var
 #else
@@ -321,7 +327,7 @@ static ALWAYS_INLINE uint16_t endian_fix16( uint16_t x )
 /* For values with 4 bits or less. */
 static int ALWAYS_INLINE x264_ctz_4bit( uint32_t x )
 {
-    static uint8_t lut[16] = {4,0,1,0,2,0,1,0,3,0,1,0,2,0,1,0};
+    static const uint8_t lut[16] = {4,0,1,0,2,0,1,0,3,0,1,0,2,0,1,0};
     return lut[x];
 }
 
@@ -331,7 +337,7 @@ static int ALWAYS_INLINE x264_ctz_4bit( uint32_t x )
 #else
 static int ALWAYS_INLINE x264_clz( uint32_t x )
 {
-    static uint8_t lut[16] = {4,3,2,2,1,1,1,1,0,0,0,0,0,0,0,0};
+    static const uint8_t lut[16] = {4,3,2,2,1,1,1,1,0,0,0,0,0,0,0,0};
     int y, z = (((x >> 16) - 1) >> 27) & 16;
     x >>= z^16;
     z += y = ((x - 0x100) >> 28) & 8;
@@ -343,7 +349,7 @@ static int ALWAYS_INLINE x264_clz( uint32_t x )
 
 static int ALWAYS_INLINE x264_ctz( uint32_t x )
 {
-    static uint8_t lut[16] = {4,0,1,0,2,0,1,0,3,0,1,0,2,0,1,0};
+    static const uint8_t lut[16] = {4,0,1,0,2,0,1,0,3,0,1,0,2,0,1,0};
     int y, z = (((x & 0xffff) - 1) >> 27) & 16;
     x >>= z;
     z += y = (((x & 0xff) - 1) >> 28) & 8;
@@ -397,18 +403,26 @@ static ALWAYS_INLINE void x264_prefetch( void *p )
 
 static inline int x264_is_regular_file( FILE *filehandle )
 {
+#if HAVE_FILEIO
     x264_struct_stat file_stat;
     if( x264_fstat( fileno( filehandle ), &file_stat ) )
         return 1;
     return S_ISREG( file_stat.st_mode );
+#else
+    return 0;
+#endif
 }
 
 static inline int x264_is_regular_file_path( const char *filename )
 {
+#if HAVE_FILEIO
     x264_struct_stat file_stat;
     if( x264_stat( filename, &file_stat ) )
         return !x264_is_pipe( filename );
     return S_ISREG( file_stat.st_mode );
+#else
+    return 0;
+#endif
 }
 
 #endif /* X264_OSDEP_H */

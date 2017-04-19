@@ -32,8 +32,8 @@
 
 /* Transition and size tables for abs<9 MVD and residual coding */
 /* Consist of i_prefix-2 1s, one zero, and a bypass sign bit */
-uint8_t x264_cabac_transition_unary[15][128];
-uint16_t x264_cabac_size_unary[15][128];
+uint8_t x264_cabac_transition_unary[15][128] X264_LARGE_BSS_LINK_SECTION;
+uint16_t x264_cabac_size_unary[15][128] X264_LARGE_BSS_LINK_SECTION;
 /* Transition and size tables for abs>9 MVD */
 /* Consist of 5 1s and a bypass sign bit */
 static uint8_t cabac_transition_5ones[128];

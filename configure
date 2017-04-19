@@ -28,6 +28,9 @@ Configuration options:
   --disable-opencl         disable OpenCL features
   --disable-gpl            disable GPL-only features
   --disable-thread         disable multithreaded encoding
+  --disable-fileio         disable stdio file support
+  --disable-heap           disable stdlib heap support
+  --disable-bss            disable common bss memory
   --disable-win32thread    disable win32threads (windows only)
   --disable-interlaced     disable interlaced encoding support
   --bit-depth=BIT_DEPTH    set output bit depth (8-10) [8]
@@ -349,6 +352,9 @@ asm="auto"
 interlaced="yes"
 lto="no"
 debug="no"
+fileio="auto"
+heap="auto"
+bss="auto"
 gprof="no"
 strip="no"
 pic="no"
@@ -376,7 +382,7 @@ NL="
 # list of all preprocessor HAVE values we can define
 CONFIG_HAVE="MALLOC_H ALTIVEC ALTIVEC_H MMX ARMV6 ARMV6T2 NEON BEOSTHREAD POSIXTHREAD WIN32THREAD THREAD LOG2F SWSCALE \
              LAVF FFMS GPAC AVS GPL VECTOREXT INTERLACED CPU_COUNT OPENCL THP LSMASH X86_INLINE_ASM AS_FUNC INTEL_DISPATCHER \
-             MSA MMAP WINRT VSX"
+             MSA MMAP WINRT VSX FILEIO HEAP BSS"
 
 # parse options
 
@@ -448,6 +454,15 @@ for opt do
             ;;
         --disable-thread)
             thread="no"
+            ;;
+        --disable-fileio)
+            fileio="no"
+            ;;
+        --disable-heap)
+            heap="no"
+            ;;
+        --disable-bss)
+            bss="no"
             ;;
         --disable-win32thread)
             [ "$thread" != "no" ] && thread="posix"
@@ -622,6 +637,10 @@ case $host_os in
     gnu*)
         SYS="HURD"
         define HAVE_MALLOC_H
+        libm="-lm"
+        ;;
+    none)
+        SYS="NONE"
         libm="-lm"
         ;;
     cygwin*|mingw*|msys*)
@@ -1198,6 +1217,16 @@ if [ "$debug" != "yes" -a "$gprof" != "yes" ]; then
     CFLAGS="$CFLAGS -fomit-frame-pointer"
 fi
 
+[ "$fileio" != "no" ] && define HAVE_FILEIO
+
+[ "$heap" != "no" ] && define HAVE_HEAP
+
+if [ "$bss" != "no" ]; then
+    CFLAGS="$CFLAGS -DX264_LARGE_BSS_LINK_SECTION=\"\""
+else
+    CFLAGS="$CFLAGS -DX264_LARGE_BSS_LINK_SECTION=\"__attribute__ ((section(\\\".x264.bss\\\")))\""
+fi
+
 if [ "$strip" = "yes" ]; then
     LDFLAGS="$LDFLAGS -s"
 fi
@@ -1500,6 +1529,9 @@ opencl:        $opencl
 filters:       $filters
 lto:           $lto
 debug:         $debug
+fileio:        $fileio
+heap:          $heap
+bss:           $bss
 gprof:         $gprof
 strip:         $strip
 PIC:           $pic
