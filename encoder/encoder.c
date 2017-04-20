@@ -58,6 +58,7 @@ static double x264_psnr( double sqe, double size )
     return -10.0 * log10( mse );
 }
 
+#if HAVE_FILEIO
 static double x264_ssim( double ssim )
 {
     double inv_ssim = 1 - ssim;
@@ -66,6 +67,7 @@ static double x264_ssim( double ssim )
 
     return -10.0 * log10( inv_ssim );
 }
+#endif
 
 static int x264_threadpool_wait_all( x264_t *h )
 {
@@ -1713,7 +1715,6 @@ x264_t *x264_encoder_open( x264_param_t *param )
         }
         fclose( f );
     }
-#endif
 
     const char *profile = h->sps->i_profile_idc == PROFILE_BASELINE ? "Constrained Baseline" :
                           h->sps->i_profile_idc == PROFILE_MAIN ? "Main" :
@@ -1738,6 +1739,7 @@ x264_t *x264_encoder_open( x264_param_t *param )
         x264_log( h, X264_LOG_INFO, "profile %s, level %s, %s %d-bit\n",
             profile, level, subsampling[CHROMA_FORMAT], BIT_DEPTH );
     }
+#endif
 
     return h;
 fail:
@@ -4022,6 +4024,7 @@ static int x264_encoder_frame_end( x264_t *h, x264_t *thread_current,
     return frame_size;
 }
 
+#if HAVE_FILEIO
 static void x264_print_intra( int64_t *i_mb_count, double i_count, int b_print_pcm, char *intra )
 {
     intra += sprintf( intra, "I16..4%s: %4.1f%% %4.1f%% %4.1f%%",
@@ -4032,18 +4035,21 @@ static void x264_print_intra( int64_t *i_mb_count, double i_count, int b_print_p
     if( b_print_pcm )
         sprintf( intra, " %4.1f%%", i_mb_count[I_PCM]  / i_count );
 }
+#endif
 
 /****************************************************************************
  * x264_encoder_close:
  ****************************************************************************/
 void    x264_encoder_close  ( x264_t *h )
 {
-    int64_t i_yuv_size = FRAME_SIZE( h->param.i_width * h->param.i_height );
     int64_t i_mb_count_size[2][7] = {{0}};
+#if HAVE_FILEIO
+    int64_t i_yuv_size = FRAME_SIZE( h->param.i_width * h->param.i_height );
     char buf[200];
     int b_print_pcm = h->stat.i_mb_count[SLICE_TYPE_I][I_PCM]
                    || h->stat.i_mb_count[SLICE_TYPE_P][I_PCM]
                    || h->stat.i_mb_count[SLICE_TYPE_B][I_PCM];
+#endif
 
     x264_lookahead_delete( h );
 
@@ -4074,6 +4080,7 @@ void    x264_encoder_close  ( x264_t *h )
     }
     h->i_frame++;
 
+#if HAVE_FILEIO
     /* Slices used and PSNR */
     for( int i = 0; i < 3; i++ )
     {
@@ -4118,6 +4125,7 @@ void    x264_encoder_close  ( x264_t *h )
             p += sprintf( p, " %4.1f%%", 100. * (i+1) * h->stat.i_consecutive_bframes[i] / den );
         x264_log( h, X264_LOG_INFO, "consecutive B-frames:%s\n", buf );
     }
+#endif
 
     for( int i_type = 0; i_type < 2; i_type++ )
         for( int i = 0; i < X264_PARTTYPE_MAX; i++ )
@@ -4126,6 +4134,7 @@ void    x264_encoder_close  ( x264_t *h )
             i_mb_count_size[i_type][x264_mb_partition_pixel_table[i]] += h->stat.i_mb_partition[i_type][i];
         }
 
+#if HAVE_FILEIO
     /* MB types used */
     if( h->stat.i_frame_count[SLICE_TYPE_I] > 0 )
     {
@@ -4336,6 +4345,7 @@ void    x264_encoder_close  ( x264_t *h )
         else
             x264_log( h, X264_LOG_INFO, "kb/s:%.2f\n", f_bitrate );
     }
+#endif
 
     /* rc */
     x264_ratecontrol_delete( h );

@@ -300,6 +300,7 @@ void x264_cqm_delete( x264_t *h )
     x264_free( h->nr_offset_emergency );
 }
 
+#if HAVE_FILEIO
 static int x264_cqm_parse_jmlist( x264_t *h, const char *buf, const char *name,
                                   uint8_t *cqm, const uint8_t *jvt, int length )
 {
@@ -344,7 +345,6 @@ static int x264_cqm_parse_jmlist( x264_t *h, const char *buf, const char *name,
     return 0;
 }
 
-#if HAVE_FILEIO
 int x264_cqm_parse_file( x264_t *h, const char *filename )
 {
     char *p;

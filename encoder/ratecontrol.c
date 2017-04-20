@@ -181,7 +181,9 @@ struct x264_ratecontrol_t
 
 
 static int parse_zones( x264_t *h );
+#if HAVE_FILEIO
 static int init_pass2(x264_t *);
+#endif
 static float rate_estimate_qscale( x264_t *h );
 static int update_vbv( x264_t *h, int bits );
 static void update_vbv_plan( x264_t *h, int overhead );
@@ -1344,6 +1346,7 @@ static x264_zone_t *get_zone( x264_t *h, int frame_num )
     return NULL;
 }
 
+#if HAVE_FILEIO
 void x264_ratecontrol_summary( x264_t *h )
 {
     x264_ratecontrol_t *rc = h->rc;
@@ -1356,6 +1359,7 @@ void x264_ratecontrol_summary( x264_t *h )
                              * rc->cplxr_sum / rc->wanted_bits_window ) - mbtree_offset - QP_BD_OFFSET );
     }
 }
+#endif
 
 void x264_ratecontrol_delete( x264_t *h )
 {
@@ -1986,9 +1990,11 @@ int x264_ratecontrol_end( x264_t *h, int bits, int *filler )
     }
 
     return 0;
+#if HAVE_FILEIO
 fail:
     x264_log( h, X264_LOG_ERROR, "ratecontrol_end: stats file could not be written to\n" );
     return -1;
+#endif
 }
 
 /****************************************************************************
@@ -2032,6 +2038,7 @@ static double get_qscale(x264_t *h, ratecontrol_entry_t *rce, double rate_factor
     return q;
 }
 
+#if HAVE_FILEIO
 static double get_diff_limited_q(x264_t *h, ratecontrol_entry_t *rce, double q, int frame_num)
 {
     x264_ratecontrol_t *rcc = h->rc;
@@ -2108,6 +2115,7 @@ static double get_diff_limited_q(x264_t *h, ratecontrol_entry_t *rce, double q, 
 
     return q;
 }
+#endif
 
 static float predict_size( predictor_t *p, float q, float var )
 {
@@ -2157,11 +2165,13 @@ static int update_vbv( x264_t *h, int bits )
 
     if( rct->buffer_fill_final_min < 0 )
     {
+#if HAVE_FILEIO
         double underflow = (double)rct->buffer_fill_final_min / h->sps->vui.i_time_scale;
         if( rcc->rate_factor_max_increment && rcc->qpm >= rcc->qp_novbv + rcc->rate_factor_max_increment )
             x264_log( h, X264_LOG_DEBUG, "VBV underflow due to CRF-max (frame %d, %.0f bits)\n", h->i_frame, underflow );
         else
             x264_log( h, X264_LOG_WARNING, "VBV underflow (frame %d, %.0f bits)\n", h->i_frame, underflow );
+#endif
         rct->buffer_fill_final =
         rct->buffer_fill_final_min = 0;
     }
@@ -2784,6 +2794,7 @@ void x264_thread_sync_ratecontrol( x264_t *cur, x264_t *prev, x264_t *next )
     /* the rest of the variables are either constant or thread-local */
 }
 
+#if HAVE_FILEIO
 static int find_underflow( x264_t *h, double *fills, int *t0, int *t1, int over )
 {
     /* find an interval ending on an overflow or underflow (depending on whether
@@ -3114,3 +3125,4 @@ static int init_pass2( x264_t *h )
 fail:
     return -1;
 }
+#endif
