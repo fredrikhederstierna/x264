@@ -105,8 +105,9 @@ int x264_is_pipe( const char *path );
 
 /* if x264 should not use default stdlib heap */
 #if !HAVE_HEAP
-#define malloc __x264_malloc
-#define free __x264_free
+#define malloc x264_custom_malloc
+#define free x264_custom_free
+#define strdup x264_strdup
 #endif
 
 #ifdef _MSC_VER

@@ -204,3 +204,14 @@ int x264_vsnprintf( char *s, size_t n, const char *fmt, va_list arg )
 }
 #endif
 #endif
+
+#if !HAVE_HEAP
+/* copy s to new string variable located in heap memory */
+char *x264_strdup( const char *s )
+{
+    char *s2 = malloc(strlen(s) + 1);
+    if (s2)
+      strcpy(s2,s);
+    return s2;
+}
+#endif

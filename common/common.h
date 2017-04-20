@@ -263,14 +263,6 @@ char *x264_slurp_file( const char *filename );
  * the encoding options */
 char *x264_param2string( x264_param_t *p, int b_res );
 
-/* copy s to new string variable located in heap memory */
-static ALWAYS_INLINE char *x264_strdup( const char *s )
-{
-    char *s2 = x264_malloc(strlen(s) + 1);
-    strcpy(s2,s);
-    return s2;
-}
-
 /* log */
 #if HAVE_FILEIO
 void x264_log( x264_t *h, int i_level, const char *psz_fmt, ... );

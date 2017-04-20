@@ -1441,9 +1441,9 @@ x264_t *x264_encoder_open( x264_param_t *param )
             goto fail;
 
     if( h->param.rc.psz_stat_out )
-        h->param.rc.psz_stat_out = x264_strdup( h->param.rc.psz_stat_out );
+        h->param.rc.psz_stat_out = strdup( h->param.rc.psz_stat_out );
     if( h->param.rc.psz_stat_in )
-        h->param.rc.psz_stat_in = x264_strdup( h->param.rc.psz_stat_in );
+        h->param.rc.psz_stat_in = strdup( h->param.rc.psz_stat_in );
 #endif
 
     x264_reduce_fraction( &h->param.i_fps_num, &h->param.i_fps_den );
@@ -4343,9 +4343,9 @@ void    x264_encoder_close  ( x264_t *h )
 #if HAVE_FILEIO
     /* param */
     if( h->param.rc.psz_stat_out )
-        x264_free( h->param.rc.psz_stat_out );
+        free( h->param.rc.psz_stat_out );
     if( h->param.rc.psz_stat_in )
-        x264_free( h->param.rc.psz_stat_in );
+        free( h->param.rc.psz_stat_in );
 #endif
 
     x264_cqm_delete( h );
