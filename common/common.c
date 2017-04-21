@@ -129,9 +129,11 @@ void x264_param_default( x264_param_t *param )
     /* Log */
 #if HAVE_FILEIO
     param->pf_log = x264_log_default;
-#endif
     param->p_log_private = NULL;
     param->i_log_level = X264_LOG_INFO;
+#else
+    param->i_log_level = X264_LOG_NONE;
+#endif
 
     /* */
     param->analyse.intra = X264_ANALYSE_I4x4 | X264_ANALYSE_I8x8;
@@ -888,10 +890,12 @@ int x264_param_parse( x264_param_t *p, const char *name, const char *value )
         b_error |= parse_cqm( value, p->cqm_8py, 64 );
         b_error |= parse_cqm( value, p->cqm_8pc, 64 );
     }
+#if HAVE_FILEIO
     OPT("log")
         p->i_log_level = atoi(value);
     OPT("dump-yuv")
         p->psz_dump_yuv = strdup(value);
+#endif
     OPT2("analyse", "partitions")
     {
         p->analyse.inter = 0;

@@ -424,11 +424,13 @@ static void x264_encoder_thread_init( x264_t *h )
 
 static int x264_validate_parameters( x264_t *h, int b_open )
 {
+#if HAVE_FILEIO
     if( !h->param.pf_log )
     {
         x264_log( NULL, X264_LOG_ERROR, "pf_log not set! did you forget to call x264_param_default?\n" );
         return -1;
     }
+#endif
 
 #if HAVE_MMX
     if( b_open )
@@ -2888,6 +2890,7 @@ cont:
             }
         }
 
+#if HAVE_FILEIO
         if( h->param.i_log_level >= X264_LOG_INFO )
         {
             if( h->mb.i_cbp_luma | h->mb.i_cbp_chroma )
@@ -2932,6 +2935,7 @@ cont:
             }
             h->stat.frame.i_mb_field[b_intra?0:b_skip?2:1] += MB_INTERLACED;
         }
+#endif
 
         /* calculate deblock strength values (actual deblocking is done per-row along with hpel) */
         if( b_deblock )

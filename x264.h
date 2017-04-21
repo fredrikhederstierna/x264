@@ -357,9 +357,11 @@ typedef struct x264_param_t
     uint8_t     cqm_8ic[64];
     uint8_t     cqm_8pc[64];
 
+#if HAVE_FILEIO
     /* Log */
     void        (*pf_log)( void *, int i_level, const char *psz, va_list );
     void        *p_log_private;
+#endif
     int         i_log_level;
     int         b_full_recon;   /* fully reconstruct frames, even when not necessary for encoding.  Implied by psz_dump_yuv */
     char        *psz_dump_yuv;  /* filename (in UTF-8) for reconstructed frames */
