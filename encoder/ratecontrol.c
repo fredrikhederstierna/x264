@@ -179,8 +179,9 @@ struct x264_ratecontrol_t
     uint64_t hrd_multiply_denom;
 };
 
-
+#if HAVE_ZONES
 static int parse_zones( x264_t *h );
+#endif
 #if HAVE_FILEIO
 static int init_pass2(x264_t *);
 #endif
@@ -865,11 +866,13 @@ int x264_ratecontrol_new( x264_t *h )
     rc->pred_b_from_p->decay = 0.5;
     rc->pred_b_from_p->offset = 0.0;
 
+#if HAVE_ZONES
     if( parse_zones( h ) < 0 )
     {
         x264_log( h, X264_LOG_ERROR, "failed to parse zones\n" );
         return -1;
     }
+#endif
 
 #if HAVE_FILEIO
     /* Load stat file and init 2pass algo */
@@ -1266,6 +1269,7 @@ fail:
     return -1;
 }
 
+#if HAVE_ZONES
 static int parse_zones( x264_t *h )
 {
     x264_ratecontrol_t *rc = h->rc;
@@ -1334,6 +1338,7 @@ static int parse_zones( x264_t *h )
 fail:
     return -1;
 }
+#endif
 
 static x264_zone_t *get_zone( x264_t *h, int frame_num )
 {

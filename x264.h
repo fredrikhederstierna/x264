@@ -357,11 +357,9 @@ typedef struct x264_param_t
     uint8_t     cqm_8ic[64];
     uint8_t     cqm_8pc[64];
 
-#if HAVE_FILEIO
     /* Log */
     void        (*pf_log)( void *, int i_level, const char *psz, va_list );
     void        *p_log_private;
-#endif
     int         i_log_level;
     int         b_full_recon;   /* fully reconstruct frames, even when not necessary for encoding.  Implied by psz_dump_yuv */
     char        *psz_dump_yuv;  /* filename (in UTF-8) for reconstructed frames */
@@ -442,9 +440,11 @@ typedef struct x264_param_t
         float       f_qcompress;    /* 0.0 => cbr, 1.0 => constant qp */
         float       f_qblur;        /* temporally blur quants */
         float       f_complexity_blur; /* temporally blur complexity */
+#if HAVE_ZONES
         x264_zone_t *zones;         /* ratecontrol overrides */
         int         i_zones;        /* number of zone_t's */
         char        *psz_zones;     /* alternate method of specifying zones */
+#endif
     } rc;
 
     /* Cropping Rectangle parameters: added to those implicitly defined by

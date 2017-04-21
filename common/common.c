@@ -123,7 +123,9 @@ void x264_param_default( x264_param_t *param )
     param->rc.f_qcompress = 0.6;
     param->rc.f_qblur = 0.5;
     param->rc.f_complexity_blur = 20;
+#if HAVE_ZONES
     param->rc.i_zones = 0;
+#endif
     param->rc.b_mb_tree = 1;
 
     /* Log */
@@ -1024,8 +1026,10 @@ int x264_param_parse( x264_param_t *p, const char *name, const char *value )
         p->rc.f_qblur = atof(value);
     OPT2("cplxblur", "cplx-blur")
         p->rc.f_complexity_blur = atof(value);
+#if HAVE_ZONES
     OPT("zones")
         p->rc.psz_zones = strdup(value);
+#endif
     OPT("crop-rect")
         b_error |= sscanf( value, "%u,%u,%u,%u", &p->crop_rect.i_left, &p->crop_rect.i_top,
                                                  &p->crop_rect.i_right, &p->crop_rect.i_bottom ) != 4;
@@ -1331,8 +1335,10 @@ char *x264_param2string( x264_param_t *p, int b_res )
 {
     int len = 1000;
     char *buf, *s;
+#if HAVE_ZONES
     if( p->rc.psz_zones )
         len += strlen(p->rc.psz_zones);
+#endif
     buf = s = x264_malloc( len );
     if( !buf )
         return NULL;
@@ -1449,10 +1455,12 @@ char *x264_param2string( x264_param_t *p, int b_res )
         s += sprintf( s, " aq=%d", p->rc.i_aq_mode );
         if( p->rc.i_aq_mode )
             s += sprintf( s, ":%.2f", p->rc.f_aq_strength );
+#if HAVE_ZONES
         if( p->rc.psz_zones )
             s += sprintf( s, " zones=%s", p->rc.psz_zones );
         else if( p->rc.i_zones )
             s += sprintf( s, " zones" );
+#endif
     }
 
     return buf;
